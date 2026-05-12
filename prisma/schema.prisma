@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ingresos  Ingreso[]
+  gastosFijos GastoFijo[]
+  tarjetas  Tarjeta[]
+  colegiaturas Colegiatura[]
+  mantenimiento Mantenimiento[]
+}
+
+model Ingreso {
+  id          String   @id @default(uuid())
+  descripcion String
+  monto       Float
+  frecuencia  String   // SEMANAL, QUINCENAL, MENSUAL
+  fecha       DateTime
+  earmark     String?  // nombre de tarjeta earmarcada
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GastoFijo {
+  id          String   @id @default(uuid())
+  descripcion String
+  monto       Float
+  categoria   String   // LUZ, GAS, AGUA, INTERNET, SUSCRIPCION, OTRO
+  fechaCorte  Int      // día del mes (1-31)
+  periodicidad String  // MENSUAL, BIMESTRAL, TRIMESTRAL, ANUAL
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Tarjeta {
+  id             String   @id @default(uuid())
+  nombre         String
+  banco          String
+  ultimosDigitos String
+  fechaCorte     Int      // día del mes (1-31)
+  limite         Float
+  saldoActual    Float    @default(0)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  cargos         Cargo[]
+}
+
+model Cargo {
+  id          String   @id @default(uuid())
+  descripcion String
+  monto       Float
+  msi        Int       @default(1)  // 1, 3, 6, 12 cuotas
+  mesCorte   String   // YYYY-MM
+  tarjetaId   String
+  tarjeta     Tarjeta  @relation(fields: [tarjetaId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Colegiatura {
+  id        String   @id @default(uuid())
+  hijo      String
+  nivel     String   // PRIMARIA, SECUNDARIA, PREPARATORIA, UNIVERSIDAD
+  bimestre  Int      // 1-6
+  monto     Float
+  anio      Int
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Mantenimiento {
+  id          String   @id @default(uuid())
+  categoria   String
+  proveedor   String?
+  descripcion String?
+  monto       Float
+  fecha       DateTime
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
