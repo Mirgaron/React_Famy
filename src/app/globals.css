@@ -47,6 +47,13 @@
     @apply border-border;
     -webkit-tap-highlight-color: transparent;
   }
+  /* Safe area handling */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
   html {
     -webkit-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
