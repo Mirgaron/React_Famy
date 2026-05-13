@@ -80,7 +80,7 @@ export default function TarjetasPage() {
             <SwipeableRow
               key={t.id}
               onEdit={() => handleOpenEdit(t)}
-              onDelete={() => handleDelete(t.id)}
+              onDelete={() => handleDelete(t.id!)}
             >
               <div className="bg-ios-bg-primary rounded-xl p-4 shadow-card">
                 <div className="flex items-center justify-between mb-2">

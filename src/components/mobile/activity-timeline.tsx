@@ -22,19 +22,19 @@ export function ActivityTimeline() {
 
   const items: ActivityItem[] = [
     ...ingresos.map((i) => ({
-      id: i.id,
+      id: i.id!,
       type: "ingreso" as const,
       descripcion: i.descripcion,
       monto: i.monto,
-      fecha: typeof i.fecha === "string" ? i.fecha : i.fecha.toISOString(),
+      fecha: i.fecha,
       categoria: i.frecuencia,
     })),
     ...gastos.map((g) => ({
-      id: g.id,
+      id: g.id!,
       type: "gasto" as const,
       descripcion: g.descripcion,
       monto: g.monto,
-      fecha: typeof g.createdAt === "string" ? g.createdAt : g.createdAt.toISOString(),
+      fecha: g.createdAt,
       categoria: g.categoria,
     })),
   ].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());

@@ -1,63 +1,69 @@
 "use client";
 
 import { useState } from "react";
-import { useIngresosStore } from "@/stores/use-ingresos-store";
-import type { Ingreso } from "@/lib/schemas/ingreso.schema";
+import { useGastosStore } from "@/stores/use-gastos-store";
 import { SwipeableRow } from "@/components/mobile/swipeable-row";
 import { BottomSheet } from "@/components/mobile/bottom-sheet";
 import { FAB } from "@/components/mobile/fab";
 import { formatCurrency } from "@/lib/utils/cn";
 import { useForm } from "react-hook-form";
 
-const FRECUENCIAS = ["SEMANAL", "QUINCENAL", "MENSUAL"];
+const CATEGORIAS = ["LUZ", "GAS", "AGUA", "INTERNET", "SUSCRIPCION", "OTRO"];
+const PERIODICIDADES = ["MENSUAL", "BIMESTRAL", "TRIMESTRAL", "ANUAL"];
 
-interface IngresoForm {
+interface GastoForm {
   descripcion: string;
   monto: string;
-  frecuencia: string;
-  earmark: string;
+  categoria: string;
+  periodicidad: string;
+  fechaCorte: string;
 }
 
-export default function IngresosPage() {
-  const ingresos = useIngresosStore((s) => s.ingresos);
-  const addIngreso = useIngresosStore((s) => s.addIngreso);
-  const updateIngreso = useIngresosStore((s) => s.updateIngreso);
-  const deleteIngreso = useIngresosStore((s) => s.deleteIngreso);
+export default function GastosPage() {
+  const gastos = useGastosStore((s) => s.gastos);
+  const addGasto = useGastosStore((s) => s.addGasto);
+  const updateGasto = useGastosStore((s) => s.updateGasto);
+  const deleteGasto = useGastosStore((s) => s.deleteGasto);
 
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [editingIngreso, setEditingIngreso] = useState<string | null>(null);
-  const { register, handleSubmit, reset } = useForm<IngresoForm>();
+  const [editingGasto, setEditingGasto] = useState<string | null>(null);
+  const { register, handleSubmit, reset } = useForm<GastoForm>();
 
   const handleOpenCreate = () => {
-    setEditingIngreso(null);
-    reset({ descripcion: "", monto: "", frecuencia: "MENSUAL", earmark: "" });
+    setEditingGasto(null);
+    reset({ descripcion: "", monto: "", categoria: "LUZ", periodicidad: "MENSUAL", fechaCorte: "1" });
     setSheetOpen(true);
   };
 
-  const handleOpenEdit = (ingreso: any) => {
-    setEditingIngreso(ingreso.id);
+  const handleOpenEdit = (gasto: any) => {
+    setEditingGasto(gasto.id);
     reset({
-      descripcion: ingreso.descripcion,
-      monto: ingreso.monto.toString(),
-      frecuencia: ingreso.frecuencia,
-      earmark: ingreso.earmark || "",
+      descripcion: gasto.descripcion,
+      monto: gasto.monto.toString(),
+      categoria: gasto.categoria,
+      periodicidad: gasto.periodicidad,
+      fechaCorte: gasto.fechaCorte.toString(),
     });
     setSheetOpen(true);
   };
 
-  const onSubmit = async (data: IngresoForm) => {
-    const ingresoData: Omit<Ingreso, "id"> = {
+  const onSubmit = async (data: GastoForm) => {
+    const gastoData = {
+      id: editingGasto || crypto.randomUUID(),
       descripcion: data.descripcion,
       monto: parseFloat(data.monto),
-      frecuencia: data.frecuencia as "SEMANAL" | "QUINCENAL" | "MENSUAL",
-      earmark: data.earmark || undefined,
-      fecha: new Date().toISOString(),
+      categoria: data.categoria,
+      periodicidad: data.periodicidad,
+      fechaCorte: parseInt(data.fechaCorte),
+      userId: "",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    if (editingIngreso) {
-      updateIngreso(editingIngreso, ingresoData);
+    if (editingGasto) {
+      updateGasto(editingGasto, gastoData);
     } else {
-      addIngreso({ ...ingresoData, id: crypto.randomUUID() } as Ingreso);
+      addGasto(gastoData);
     }
 
     setSheetOpen(false);
@@ -65,36 +71,35 @@ export default function IngresosPage() {
   };
 
   const handleDelete = (id: string) => {
-    deleteIngreso(id);
+    deleteGasto(id);
   };
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-ios-text-primary">Ingresos</h1>
+      <h1 className="text-2xl font-bold text-ios-text-primary">Gastos Fijos</h1>
 
-      {ingresos.length === 0 ? (
+      {gastos.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-ios-text-secondary text-sm">Sin ingresos registrados</p>
-          <p className="text-ios-text-tertiary text-xs mt-1">Toca + para agregar tu primer ingreso</p>
+          <p className="text-ios-text-secondary text-sm">Sin gastos fijos registrados</p>
+          <p className="text-ios-text-tertiary text-xs mt-1">Toca + para agregar tu primer gasto</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {ingresos.map((ing) => (
+          {gastos.map((g) => (
             <SwipeableRow
-              key={ing.id}
-              onEdit={() => handleOpenEdit(ing)}
-              onDelete={() => handleDelete(ing.id!)}
+              key={g.id}
+              onEdit={() => handleOpenEdit(g)}
+              onDelete={() => handleDelete(g.id!)}
             >
               <div className="bg-ios-bg-primary rounded-xl p-4 shadow-card flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-ios-text-primary">{ing.descripcion}</p>
+                  <p className="text-sm font-semibold text-ios-text-primary">{g.descripcion}</p>
                   <p className="text-xs text-ios-text-secondary">
-                    {ing.frecuencia}
-                    {ing.earmark ? ` · ${ing.earmark}` : ""}
+                    {g.categoria} · {g.periodicidad} · Corte día {g.fechaCorte}
                   </p>
                 </div>
-                <p className="text-base font-bold text-ios-success">
-                  {formatCurrency(ing.monto)}
+                <p className="text-base font-bold text-ios-danger">
+                  {formatCurrency(g.monto)}
                 </p>
               </div>
             </SwipeableRow>
@@ -107,8 +112,8 @@ export default function IngresosPage() {
       <BottomSheet
         isOpen={sheetOpen}
         onClose={() => setSheetOpen(false)}
-        title={editingIngreso ? "Editar Ingreso" : "Nuevo Ingreso"}
-        height="60%"
+        title={editingGasto ? "Editar Gasto" : "Nuevo Gasto"}
+        height="70%"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -118,7 +123,7 @@ export default function IngresosPage() {
             <input
               {...register("descripcion", { required: true })}
               className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
-              placeholder="Salario, Freelance..."
+              placeholder="Luz, Gas, Internet..."
               style={{ fontSize: 16 }}
             />
           </div>
@@ -139,27 +144,44 @@ export default function IngresosPage() {
 
           <div>
             <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
-              Frecuencia
+              Categoría
             </label>
             <select
-              {...register("frecuencia", { required: true })}
+              {...register("categoria", { required: true })}
               className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
               style={{ fontSize: 16 }}
             >
-              {FRECUENCIAS.map((freq) => (
-                <option key={freq} value={freq}>{freq}</option>
+              {CATEGORIAS.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
           </div>
 
           <div>
             <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
-              Tarjeta asociada (opcional)
+              Periodicidad
+            </label>
+            <select
+              {...register("periodicidad", { required: true })}
+              className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
+              style={{ fontSize: 16 }}
+            >
+              {PERIODICIDADES.map((per) => (
+                <option key={per} value={per}>{per}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
+              Día de corte (1-31)
             </label>
             <input
-              {...register("earmark")}
+              {...register("fechaCorte", { required: true })}
+              type="number"
+              min="1"
+              max="31"
               className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
-              placeholder="Visa Bancomer..."
               style={{ fontSize: 16 }}
             />
           </div>
@@ -169,7 +191,7 @@ export default function IngresosPage() {
             className="w-full h-12 bg-ios-accent text-white font-semibold rounded-xl active:opacity-70"
             style={{ fontSize: 16 }}
           >
-            {editingIngreso ? "Actualizar" : "Guardar"}
+            {editingGasto ? "Actualizar" : "Guardar"}
           </button>
         </form>
       </BottomSheet>

@@ -4,7 +4,38 @@
 
 @layer base {
   :root {
-    --background: 30 9% 98%; /* #faf9f7 warm off-white */
+    /* iOS Native Colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f2f2f7;
+    --bg-tertiary: #e5e5ea;
+    --text-primary: #000000;
+    --text-secondary: #8e8e93;
+    --text-tertiary: #c7c7cc;
+    --accent: #007aff;
+    --accent-light: #e8f4fd;
+    --danger: #ff3b30;
+    --danger-light: #ffe5e4;
+    --success: #34c759;
+    --success-light: #e8fced;
+    --warning: #ff9500;
+    /* Sheet */
+    --sheet-bg: rgba(255, 255, 255, 0.72);
+    --sheet-backdrop: rgba(0, 0, 0, 0.4);
+    /* Radii */
+    --radius-card: 12px;
+    --radius-sheet: 16px;
+    --radius-button: 10px;
+    --radius-full: 9999px;
+    /* Shadows */
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-sheet: 0 -4px 24px rgba(0, 0, 0, 0.12);
+    --shadow-fab: 0 4px 12px rgba(0, 122, 255, 0.4);
+    /* Spacing */
+    --nav-height: 49px;
+    --fab-size: 56px;
+    --touch-target-min: 44px;
+    /* Legacy compatibility */
+    --background: 30 9% 98%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -29,6 +60,13 @@
   * {
     @apply border-border;
     -webkit-tap-highlight-color: transparent;
+  }
+  /* Safe area handling */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
   }
   html {
     -webkit-text-size-adjust: 100%;
