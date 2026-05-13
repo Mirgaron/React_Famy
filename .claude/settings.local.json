@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git check-ignore *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(git status *)",
+      "Bash(git worktree *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit *)",
+      "Bash(git *)",
+      "Bash(bash scripts/start-server.sh --project-dir C:/GitHub/React_Famy)",
+      "Bash(npm install *)",
+      "Bash(npm list *)",
+      "Bash(npm run *)"
+    ]
+  }
+}

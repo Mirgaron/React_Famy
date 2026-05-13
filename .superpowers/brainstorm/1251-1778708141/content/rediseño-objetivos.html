@@ -1,0 +1,99 @@
+<h2>Estado Actual del Frontend</h2>
+<p class="subtitle">Lo que existe hoy — lo que se rediseñará</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Estado Actual</div>
+    <div class="mockup-body">
+      <div style="background:#faf9f7;padding:16px;border-radius:12px;min-height:200px">
+        <div style="background:#1a1a2e;color:white;padding:12px;border-radius:8px 8px 0 0">
+          <div style="font-size:11px;opacity:0.5">BIENVENIDO</div>
+          <div style="font-size:16px;font-weight:900">React Famy</div>
+        </div>
+        <div style="background:#1a1a2e;padding:16px;color:white;font-size:32px;font-weight:900;margin-top:1px">
+          $12,500
+          <div style="font-size:11px;opacity:0.5;margin-top:4px">BALANCE TOTAL</div>
+        </div>
+        <div style="display:flex;gap:8px;padding:12px">
+          <div style="flex:1;background:white;border:1px solid #e8e6e1;padding:12px;border-radius:8px">
+            <div style="font-size:10px;color:#6b6b6b">INGRESOS</div>
+            <div style="font-size:20px;font-weight:900">$15,000</div>
+          </div>
+          <div style="flex:1;background:white;border:1px solid #e8e6e1;padding:12px;border-radius:8px">
+            <div style="font-size:10px;color:#6b6b6b">GASTOS</div>
+            <div style="font-size:20px;font-weight:900">$2,500</div>
+          </div>
+        </div>
+        <div style="background:white;border:1px solid #e8e6e1;margin:12px;padding:12px;border-radius:8px">
+          <div style="font-size:10px;color:#6b6b6b;margin-bottom:8px">TARJETAS</div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0">
+            <span style="font-size:13px">Visa Bancomer</span>
+            <span style="color:red;font-weight:700">$3,200</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0">
+            <span style="font-size:13px">Mastercard HSBC</span>
+            <span style="color:green;font-weight:700">$0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">Problemas Detectados</div>
+    <div class="mockup-body">
+      <div style="padding:16px;min-height:200px">
+        <div style="margin-bottom:12px;padding:10px;background:#fff3cd;border-radius:8px;border-left:3px solid #ffc107">
+          <strong style="font-size:12px">Estilo inconsistente</strong>
+          <p style="font-size:11px;margin:4px 0 0">Colores hardcodeados (#1a1a2e, #0f3460), no usa variables CSS</p>
+        </div>
+        <div style="margin-bottom:12px;padding:10px;background:#fff3cd;border-radius:8px;border-left:3px solid #ffc107">
+          <strong style="font-size:12px">Cardsgenéricos</strong>
+          <p style="font-size:11px;margin:4px 0 0">Sin jerarquía visual clara, información compacta</p>
+        </div>
+        <div style="margin-bottom:12px;padding:10px;background:#fff3cd;border-radius:8px;border-left:3px solid #ffc107">
+          <strong style="font-size:12px">Touch targets pequeños</strong>
+          <p style="font-size:11px;margin:4px 0 0">Botones eliminar 32px, ideal para iPhone sería 44px mínimo</p>
+        </div>
+        <div style="padding:10px;background:#fff3cd;border-radius:8px;border-left:3px solid #ffc107">
+          <strong style="font-size:12px">Sin animaciones</strong>
+          <p style="font-size:11px;margin:4px 0 0">UI estática, sin feedback táctil/visual</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px">
+  <h3>¿Qué objetivo principal tiene el rediseño?</h3>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="modernizacion" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Modernización UI</h3>
+      <p>Actualizar a diseño profesional iOS-native con glassmorphism, gradientes sutiles, tipografía clara</p>
+    </div>
+  </div>
+  <div class="option" data-choice="movil" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Mobile-First Puro</h3>
+      <p>Diseño 100% pensado para iPhone: bottom sheet forms, swipe actions, gestos nativos</p>
+    </div>
+  </div>
+  <div class="option" data-choice="funcionalidad" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Más Funcionalidad</h3>
+      <p>Agregar métricas, gráficos de tendencias, alertas de corte, preview de gastos mensuales</p>
+    </div>
+  </div>
+  <div class="option" data-choice="tres" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Las tres cosas</h3>
+      <p>UI moderna + Mobile-first + Funcionalidades nuevas — proyecto completo</p>
+    </div>
+  </div>
+</div>
