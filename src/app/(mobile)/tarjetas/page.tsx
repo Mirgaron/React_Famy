@@ -1,0 +1,203 @@
+"use client";
+
+import { useState } from "react";
+import { useTarjetasStore } from "@/stores/use-tarjetas-store";
+import { SwipeableRow } from "@/components/mobile/swipeable-row";
+import { BottomSheet } from "@/components/mobile/bottom-sheet";
+import { FAB } from "@/components/mobile/fab";
+import { formatCurrency } from "@/lib/utils/cn";
+import { useForm } from "react-hook-form";
+
+export default function TarjetasPage() {
+  const tarjetas = useTarjetasStore((s) => s.tarjetas);
+  const addTarjeta = useTarjetasStore((s) => s.addTarjeta);
+  const updateTarjeta = useTarjetasStore((s) => s.updateTarjeta);
+  const deleteTarjeta = useTarjetasStore((s) => s.deleteTarjeta);
+
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [editingTarjeta, setEditingTarjeta] = useState<string | null>(null);
+  const { register, handleSubmit, reset } = useForm();
+
+  const handleOpenCreate = () => {
+    setEditingTarjeta(null);
+    reset({ nombre: "", banco: "", ultimosDigitos: "", fechaCorte: "", limite: "", saldoActual: "" });
+    setSheetOpen(true);
+  };
+
+  const handleOpenEdit = (tarjeta: any) => {
+    setEditingTarjeta(tarjeta.id);
+    reset({
+      nombre: tarjeta.nombre,
+      banco: tarjeta.banco,
+      ultimosDigitos: tarjeta.ultimosDigitos,
+      fechaCorte: tarjeta.fechaCorte.toString(),
+      limite: tarjeta.limite.toString(),
+      saldoActual: tarjeta.saldoActual?.toString() || "0",
+    });
+    setSheetOpen(true);
+  };
+
+  const onSubmit = async (data: any) => {
+    const tarjetaData = {
+      id: editingTarjeta || crypto.randomUUID(),
+      nombre: data.nombre,
+      banco: data.banco,
+      ultimosDigitos: data.ultimosDigitos,
+      fechaCorte: parseInt(data.fechaCorte),
+      limite: parseFloat(data.limite),
+      saldoActual: parseFloat(data.saldoActual || "0"),
+      userId: "",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    if (editingTarjeta) {
+      updateTarjeta(editingTarjeta, tarjetaData);
+    } else {
+      addTarjeta(tarjetaData);
+    }
+
+    setSheetOpen(false);
+    reset();
+  };
+
+  const handleDelete = (id: string) => {
+    deleteTarjeta(id);
+  };
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold text-ios-text-primary">Tarjetas</h1>
+
+      {tarjetas.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-ios-text-secondary text-sm">Sin tarjetas registradas</p>
+          <p className="text-ios-text-tertiary text-xs mt-1">Toca + para agregar tu primera tarjeta</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {tarjetas.map((t) => (
+            <SwipeableRow
+              key={t.id}
+              onEdit={() => handleOpenEdit(t)}
+              onDelete={() => handleDelete(t.id)}
+            >
+              <div className="bg-ios-bg-primary rounded-xl p-4 shadow-card">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-sm font-semibold text-ios-text-primary">{t.nombre}</p>
+                    <p className="text-xs text-ios-text-secondary">{t.banco} · terminacion {t.ultimosDigitos}</p>
+                  </div>
+                  <p className={`text-base font-bold ${(t.saldoActual || 0) > 0 ? "text-ios-danger" : "text-ios-success"}`}>
+                    {formatCurrency(t.saldoActual || 0)}
+                  </p>
+                </div>
+                <div className="flex justify-between text-xs text-ios-text-tertiary">
+                  <span>Corte dia {t.fechaCorte}</span>
+                  <span>Limite: {formatCurrency(t.limite)}</span>
+                </div>
+              </div>
+            </SwipeableRow>
+          ))}
+        </div>
+      )}
+
+      <FAB onClick={handleOpenCreate} />
+
+      <BottomSheet
+        isOpen={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={editingTarjeta ? "Editar Tarjeta" : "Nueva Tarjeta"}
+        height="70%"
+      >
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
+              Nombre
+            </label>
+            <input
+              {...register("nombre", { required: true })}
+              className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
+              placeholder="Visa, Mastercard..."
+              style={{ fontSize: 16 }}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
+              Banco
+            </label>
+            <input
+              {...register("banco", { required: true })}
+              className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
+              placeholder="Bancomer, HSBC..."
+              style={{ fontSize: 16 }}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
+              Ultimos 4 digitos
+            </label>
+            <input
+              {...register("ultimosDigitos", { required: true })}
+              className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
+              placeholder="1234"
+              maxLength={4}
+              style={{ fontSize: 16 }}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
+              Dia de corte
+            </label>
+            <input
+              {...register("fechaCorte", { required: true })}
+              type="number"
+              min="1"
+              max="31"
+              className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
+              style={{ fontSize: 16 }}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
+              Limite de credito
+            </label>
+            <input
+              {...register("limite", { required: true })}
+              type="number"
+              step="0.01"
+              className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
+              style={{ fontSize: 16 }}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
+              Saldo actual
+            </label>
+            <input
+              {...register("saldoActual")}
+              type="number"
+              step="0.01"
+              defaultValue="0"
+              className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
+              style={{ fontSize: 16 }}
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full h-12 bg-ios-accent text-white font-semibold rounded-xl active:opacity-70"
+            style={{ fontSize: 16 }}
+          >
+            {editingTarjeta ? "Actualizar" : "Guardar"}
+          </button>
+        </form>
+      </BottomSheet>
+    </div>
+  );
+}
