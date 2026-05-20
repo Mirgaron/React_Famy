@@ -1,36 +1,50 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { apiClient } from "@/lib/api/client";
 
 interface GastosFijosState {
   gastos: any[];
   isLoading: boolean;
-  addGasto: (gasto: any) => void;
-  updateGasto: (id: string, gasto: any) => void;
-  deleteGasto: (id: string) => void;
+  fetchGastos: () => Promise<void>;
+  addGasto: (gasto: any) => Promise<void>;
+  updateGasto: (id: string, gasto: any) => Promise<void>;
+  deleteGasto: (id: string) => Promise<void>;
   setGastos: (gastos: any[]) => void;
   setLoading: (loading: boolean) => void;
 }
 
-export const useGastosStore = create<GastosFijosState>()(
-  persist(
-    (set) => ({
-      gastos: [],
-      isLoading: false,
-      addGasto: (gasto) =>
-        set((state) => ({ gastos: [...state.gastos, gasto] })),
-      updateGasto: (id, updated) =>
-        set((state) => ({
-          gastos: state.gastos.map((g) =>
-            g.id === id ? { ...g, ...updated } : g
-          ),
-        })),
-      deleteGasto: (id) =>
-        set((state) => ({
-          gastos: state.gastos.filter((g) => g.id !== id),
-        })),
-      setGastos: (gastos) => set({ gastos }),
-      setLoading: (isLoading) => set({ isLoading }),
-    }),
-    { name: "gastos-storage" }
-  )
-);
+export const useGastosStore = create<GastosFijosState>()((set) => ({
+  gastos: [],
+  isLoading: false,
+  fetchGastos: async () => {
+    set({ isLoading: true });
+    try {
+      const res = await apiClient<{ data: any[] }>("/gastos-fijos");
+      set({ gastos: res.data, isLoading: false });
+    } catch (e) {
+      console.error(e);
+      set({ isLoading: false });
+    }
+  },
+  addGasto: async (gasto) => {
+    const res = await apiClient<{ data: any }>("/gastos-fijos", {
+      method: "POST",
+      body: gasto,
+    });
+    set((state) => ({ gastos: [...state.gastos, res.data] }));
+  },
+  updateGasto: async (id, updated) => {
+    const res = await apiClient<{ data: any }>(`/gastos-fijos/${id}`, {
+      method: "PUT",
+      body: updated,
+    });
+    set((state) => ({
+      gastos: state.gastos.map((g) => (g.id === id ? res.data : g)),
+    }));
+  },
+  deleteGasto: async (id) => {
+    await apiClient(`/gastos-fijos/${id}`, { method: "DELETE" });
+    set((state) => ({ gastos: state.gastos.filter((g) => g.id !== id) }));
+  },
+  setGastos: (gastos) => set({ gastos }),
+  setLoading: (isLoading) => set({ isLoading }),
+}));
