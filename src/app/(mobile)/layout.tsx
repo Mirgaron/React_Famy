@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth/auth.config";
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/mobile/bottom-nav";
+import { DataLoader } from "./data-loader";
 
 export default async function MobileLayout({
   children,
@@ -14,6 +15,7 @@ export default async function MobileLayout({
 
   return (
     <div className="min-h-screen bg-ios-bg-secondary">
+      <DataLoader />
       <main className="px-4 py-6 pb-24">
         {children}
       </main>
