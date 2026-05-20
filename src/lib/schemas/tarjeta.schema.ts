@@ -22,3 +22,5 @@ export const cargoSchema = z.object({
 });
 
 export type Cargo = z.infer<typeof cargoSchema>;
+
+export type TarjetaWithCargos = Tarjeta & { cargos?: Cargo[] };

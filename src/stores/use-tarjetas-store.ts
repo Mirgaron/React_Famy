@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { apiClient } from "@/lib/api/client";
-import type { Tarjeta, Cargo } from "@/lib/schemas/tarjeta.schema";
+import type { Tarjeta, Cargo, TarjetaWithCargos } from "@/lib/schemas/tarjeta.schema";
 
 interface TarjetasState {
   tarjetas: Tarjeta[];
@@ -23,7 +23,7 @@ export const useTarjetasStore = create<TarjetasState>()((set) => ({
   fetchTarjetas: async () => {
     set({ isLoading: true });
     try {
-      const res = await apiClient<{ data: Tarjeta[] }>("/tarjetas");
+      const res = await apiClient<{ data: TarjetaWithCargos[] }>("/tarjetas");
       const tarjetas = res.data;
       const allCargos = tarjetas.flatMap((t) => t.cargos || []);
       set({ tarjetas, cargos: allCargos, isLoading: false });
