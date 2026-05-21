@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { useEffect, useState } from "react";
 import { useGastosStore } from "@/stores/use-gastos-store";
+import { useTarjetasStore } from "@/stores/use-tarjetas-store";
 import { SwipeableRow } from "@/components/mobile/swipeable-row";
 import { BottomSheet } from "@/components/mobile/bottom-sheet";
 import { FAB } from "@/components/mobile/fab";
@@ -17,6 +19,7 @@ interface GastoForm {
   categoria: string;
   periodicidad: string;
   fechaCorte: string;
+  tarjetaId: string;
 }
 
 export default function GastosPage() {
@@ -24,14 +27,20 @@ export default function GastosPage() {
   const addGasto = useGastosStore((s) => s.addGasto);
   const updateGasto = useGastosStore((s) => s.updateGasto);
   const deleteGasto = useGastosStore((s) => s.deleteGasto);
+  const tarjetas = useTarjetasStore((s) => s.tarjetas);
+  const fetchTarjetas = useTarjetasStore((s) => s.fetchTarjetas);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingGasto, setEditingGasto] = useState<string | null>(null);
   const { register, handleSubmit, reset } = useForm<GastoForm>();
 
+  useEffect(() => {
+    if (tarjetas.length === 0) fetchTarjetas();
+  }, [tarjetas.length, fetchTarjetas]);
+
   const handleOpenCreate = () => {
     setEditingGasto(null);
-    reset({ descripcion: "", monto: "", categoria: "LUZ", periodicidad: "MENSUAL", fechaCorte: "1" });
+    reset({ descripcion: "", monto: "", categoria: "LUZ", periodicidad: "MENSUAL", fechaCorte: "1", tarjetaId: "" });
     setSheetOpen(true);
   };
 
@@ -43,27 +52,26 @@ export default function GastosPage() {
       categoria: gasto.categoria,
       periodicidad: gasto.periodicidad,
       fechaCorte: gasto.fechaCorte.toString(),
+      tarjetaId: gasto.tarjetaId || "",
     });
     setSheetOpen(true);
   };
 
   const onSubmit = async (data: GastoForm) => {
-    const gastoData = {
-      id: editingGasto || crypto.randomUUID(),
+    const gastoData: any = {
       descripcion: data.descripcion,
       monto: parseFloat(data.monto),
       categoria: data.categoria,
       periodicidad: data.periodicidad,
       fechaCorte: parseInt(data.fechaCorte),
-      userId: "",
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
+
+    if (data.tarjetaId && data.tarjetaId.trim() !== "") gastoData.tarjetaId = data.tarjetaId;
 
     if (editingGasto) {
       updateGasto(editingGasto, gastoData);
     } else {
-      addGasto(gastoData);
+      addGasto({ ...gastoData, id: uuidv4(), userId: "", createdAt: new Date(), updatedAt: new Date() });
     }
 
     setSheetOpen(false);
@@ -96,6 +104,7 @@ export default function GastosPage() {
                   <p className="text-sm font-semibold text-ios-text-primary">{g.descripcion}</p>
                   <p className="text-xs text-ios-text-secondary">
                     {g.categoria} · {g.periodicidad} · Corte día {g.fechaCorte}
+                    {g.tarjetaId ? ` · ${tarjetas.find(t => t.id === g.tarjetaId)?.nombre || "Tarjeta"}` : ""}
                   </p>
                 </div>
                 <p className="text-base font-bold text-ios-danger">
@@ -113,7 +122,7 @@ export default function GastosPage() {
         isOpen={sheetOpen}
         onClose={() => setSheetOpen(false)}
         title={editingGasto ? "Editar Gasto" : "Nuevo Gasto"}
-        height="70%"
+        height="85%"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -184,6 +193,24 @@ export default function GastosPage() {
               className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
               style={{ fontSize: 16 }}
             />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
+              Tarjeta asociada (opcional)
+            </label>
+            <select
+              {...register("tarjetaId")}
+              className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
+              style={{ fontSize: 16 }}
+            >
+              <option value="">Ninguna</option>
+              {tarjetas.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.nombre} - {t.banco}
+                </option>
+              ))}
+            </select>
           </div>
 
           <button

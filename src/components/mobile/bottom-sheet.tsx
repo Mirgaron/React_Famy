@@ -9,14 +9,16 @@ interface BottomSheetProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
-  height?: "50%" | "60%" | "70%" | "90%";
+  height?: "50%" | "60%" | "70%" | "85%" | "90%" | "95%";
 }
 
 const heightClass = {
-  "50%": "h-[50vh]",
-  "60%": "h-[60vh]",
-  "70%": "h-[70vh]",
-  "90%": "h-[90vh]",
+  "50%": "min-h-[50vh] h-auto",
+  "60%": "min-h-[60vh] h-auto",
+  "70%": "min-h-[70vh] h-auto",
+  "85%": "min-h-[85vh] h-auto",
+  "90%": "min-h-[90vh] h-auto",
+  "95%": "min-h-[95vh] h-auto",
 };
 
 export function BottomSheet({ isOpen, onClose, title, children, height = "60%" }: BottomSheetProps) {

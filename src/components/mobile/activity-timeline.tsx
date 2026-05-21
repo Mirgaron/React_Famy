@@ -104,7 +104,7 @@ export function ActivityTimeline() {
                     {formatCurrency(item.monto)}
                   </p>
                   <p className="text-xs text-ios-text-tertiary">
-                    {formatDistanceToNow(parseISO(item.fecha), { addSuffix: true, locale: es })}
+                    {formatDistanceToNow(typeof item.fecha === "string" ? parseISO(item.fecha) : item.fecha, { addSuffix: true, locale: es })}
                   </p>
                 </div>
               </div>
@@ -120,7 +120,7 @@ function groupByDate(items: ActivityItem[]): Record<string, ActivityItem[]> {
   const groups: Record<string, ActivityItem[]> = {};
 
   items.forEach((item) => {
-    const date = parseISO(item.fecha);
+    const date = typeof item.fecha === "string" ? parseISO(item.fecha) : item.fecha;
     let label: string;
 
     if (isToday(date)) {

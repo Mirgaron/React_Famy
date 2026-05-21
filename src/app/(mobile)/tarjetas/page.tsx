@@ -1,5 +1,6 @@
 "use client";
 
+import { v4 as uuidv4 } from "uuid";
 import { useState } from "react";
 import { useTarjetasStore } from "@/stores/use-tarjetas-store";
 import { SwipeableRow } from "@/components/mobile/swipeable-row";
@@ -38,23 +39,19 @@ export default function TarjetasPage() {
   };
 
   const onSubmit = async (data: any) => {
-    const tarjetaData = {
-      id: editingTarjeta || crypto.randomUUID(),
+    const tarjetaData: any = {
       nombre: data.nombre,
       banco: data.banco,
       ultimosDigitos: data.ultimosDigitos,
       fechaCorte: parseInt(data.fechaCorte),
       limite: parseFloat(data.limite),
       saldoActual: parseFloat(data.saldoActual || "0"),
-      userId: "",
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
 
     if (editingTarjeta) {
       updateTarjeta(editingTarjeta, tarjetaData);
     } else {
-      addTarjeta(tarjetaData);
+      addTarjeta({ ...tarjetaData, id: uuidv4(), userId: "", createdAt: new Date(), updatedAt: new Date() });
     }
 
     setSheetOpen(false);
@@ -108,7 +105,7 @@ export default function TarjetasPage() {
         isOpen={sheetOpen}
         onClose={() => setSheetOpen(false)}
         title={editingTarjeta ? "Editar Tarjeta" : "Nueva Tarjeta"}
-        height="70%"
+        height="90%"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>

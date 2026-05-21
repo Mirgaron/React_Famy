@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { useEffect, useState } from "react";
 import { useIngresosStore } from "@/stores/use-ingresos-store";
+import { useTarjetasStore } from "@/stores/use-tarjetas-store";
 import type { Ingreso } from "@/lib/schemas/ingreso.schema";
 import { SwipeableRow } from "@/components/mobile/swipeable-row";
 import { BottomSheet } from "@/components/mobile/bottom-sheet";
@@ -23,10 +25,16 @@ export default function IngresosPage() {
   const addIngreso = useIngresosStore((s) => s.addIngreso);
   const updateIngreso = useIngresosStore((s) => s.updateIngreso);
   const deleteIngreso = useIngresosStore((s) => s.deleteIngreso);
+  const tarjetas = useTarjetasStore((s) => s.tarjetas);
+  const fetchTarjetas = useTarjetasStore((s) => s.fetchTarjetas);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingIngreso, setEditingIngreso] = useState<string | null>(null);
   const { register, handleSubmit, reset } = useForm<IngresoForm>();
+
+  useEffect(() => {
+    if (tarjetas.length === 0) fetchTarjetas();
+  }, [tarjetas.length, fetchTarjetas]);
 
   const handleOpenCreate = () => {
     setEditingIngreso(null);
@@ -57,7 +65,7 @@ export default function IngresosPage() {
     if (editingIngreso) {
       updateIngreso(editingIngreso, ingresoData);
     } else {
-      addIngreso({ ...ingresoData, id: crypto.randomUUID() } as Ingreso);
+      addIngreso({ ...ingresoData, id:uuidv4() } as Ingreso);
     }
 
     setSheetOpen(false);
@@ -90,7 +98,7 @@ export default function IngresosPage() {
                   <p className="text-sm font-semibold text-ios-text-primary">{ing.descripcion}</p>
                   <p className="text-xs text-ios-text-secondary">
                     {ing.frecuencia}
-                    {ing.earmark ? ` · ${ing.earmark}` : ""}
+                    {ing.earmark ? ` · ${tarjetas.find(t => t.id === ing.earmark)?.nombre || ing.earmark}` : ""}
                   </p>
                 </div>
                 <p className="text-base font-bold text-ios-success">
@@ -156,12 +164,18 @@ export default function IngresosPage() {
             <label className="text-xs font-medium text-ios-text-secondary uppercase tracking-wide">
               Tarjeta asociada (opcional)
             </label>
-            <input
+            <select
               {...register("earmark")}
               className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm border-0"
-              placeholder="Visa Bancomer..."
               style={{ fontSize: 16 }}
-            />
+            >
+              <option value="">Ninguna</option>
+              {tarjetas.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.nombre} - {t.banco}
+                </option>
+              ))}
+            </select>
           </div>
 
           <button

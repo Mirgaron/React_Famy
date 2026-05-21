@@ -16,5 +16,5 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const gasto = await prisma.gastoFijo.create({ data: { ...body, userId: session.user.id } });
     return NextResponse.json({ data: gasto, error: null });
-  } catch { return NextResponse.json({ error: "Error al crear" }, { status: 500 }); }
+  } catch (e: any) { return NextResponse.json({ error: e.message || "Error al crear" }, { status: 500 }); }
 }

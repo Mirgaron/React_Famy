@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useGastosStore } from "@/stores/use-gastos-store";
+import { useTarjetasStore } from "@/stores/use-tarjetas-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,22 +11,27 @@ import { formatCurrency } from "@/lib/utils/cn";
 
 export default function GastosFijosPage() {
   const { gastos, setGastos, addGasto, deleteGasto } = useGastosStore();
+  const tarjetas = useTarjetasStore((s) => s.tarjetas);
+  const fetchTarjetas = useTarjetasStore((s) => s.fetchTarjetas);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ descripcion: "", monto: "", categoria: "LUZ", fechaCorte: "", periodicidad: "MENSUAL" });
+  const [form, setForm] = useState({ descripcion: "", monto: "", categoria: "LUZ", fechaCorte: "", periodicidad: "MENSUAL", tarjetaId: "" });
 
   useEffect(() => {
     fetch("/api/gastos-fijos").then(r => r.json()).then(j => { if (j.data) setGastos(j.data); });
-  }, []);
+    if (tarjetas.length === 0) fetchTarjetas();
+  }, [tarjetas.length, fetchTarjetas, setGastos]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = { ...form, monto: parseFloat(form.monto), fechaCorte: parseInt(form.fechaCorte) };
+    if (!payload.tarjetaId) delete payload.tarjetaId;
     const res = await fetch("/api/gastos-fijos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, monto: parseFloat(form.monto), fechaCorte: parseInt(form.fechaCorte) }),
+      body: JSON.stringify(payload),
     });
     const json = await res.json();
-    if (json.data) { addGasto(json.data); setShowForm(false); setForm({ descripcion: "", monto: "", categoria: "LUZ", fechaCorte: "", periodicidad: "MENSUAL" }); }
+    if (json.data) { addGasto(json.data); setShowForm(false); setForm({ descripcion: "", monto: "", categoria: "LUZ", fechaCorte: "", periodicidad: "MENSUAL", tarjetaId: "" }); }
   };
 
   const handleDelete = async (id: string) => {
@@ -123,6 +129,22 @@ export default function GastosFijosPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-semibold tracking-wide uppercase text-[#6b6b6b]">Tarjeta asociada (opcional)</Label>
+              <Select value={form.tarjetaId} onValueChange={v => setForm({ ...form, tarjetaId: v })}>
+                <SelectTrigger className="h-12 rounded-xl border-[#d4d0c8] bg-[#faf9f7] text-[15px]">
+                  <SelectValue placeholder="Ninguna" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Ninguna</SelectItem>
+                  {tarjetas.map((t: any) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.nombre} - {t.banco}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Button
               type="submit"
               className="w-full h-12 bg-[#1a1a2e] hover:bg-[#16213e] text-white font-semibold rounded-xl text-[15px]"
@@ -153,7 +175,10 @@ export default function GastosFijosPage() {
             <div key={g.id} className="rounded-2xl bg-white border border-[#e8e6e1] p-4 flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-[#1a1a2e] text-[15px] truncate">{g.descripcion}</p>
-                <p className="text-xs text-[#6b6b6b] mt-0.5">{g.categoria} · Corte día {g.fechaCorte} · {g.periodicidad}</p>
+                <p className="text-xs text-[#6b6b6b] mt-0.5">
+                  {g.categoria} · Corte día {g.fechaCorte} · {g.periodicidad}
+                  {g.tarjetaId ? ` · ${tarjetas.find(t => t.id === g.tarjetaId)?.nombre || "Tarjeta"}` : ""}
+                </p>
               </div>
               <div className="flex items-center gap-3 ml-4">
                 <span className="font-black text-red-500 text-[15px] whitespace-nowrap">{formatCurrency(Number(g.monto))}</span>

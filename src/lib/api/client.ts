@@ -13,6 +13,12 @@ export async function apiClient<T>(endpoint: string, options: ApiOptions = {}): 
     body: body ? JSON.stringify(body) : undefined,
     credentials: "include",
   });
+
+  if (res.status === 401) {
+    window.location.href = "/login";
+    throw new Error("Sesión expirada");
+  }
+
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: "Request failed" }));
     throw new Error(error.error || `API error ${res.status}`);
