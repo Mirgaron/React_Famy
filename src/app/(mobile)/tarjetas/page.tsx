@@ -45,6 +45,8 @@ export default function TarjetasPage() {
   };
 
   const onSubmit = async (data: any) => {
+        console.log(data);
+
     const tarjetaData: any = {
       nombre: data.nombre,
       banco: data.banco,
@@ -65,19 +67,32 @@ export default function TarjetasPage() {
   };
 
   const handleAddCargo = async (data: any) => {
-    if (!selectedTarjetaId) return;
-    await apiClient("/cargos", {
-      method: "POST",
-      body: {
-        descripcion: data.descripcion,
-        monto: parseFloat(data.monto),
-        tarjetaId: selectedTarjetaId,
-        msi: parseInt(data.msi || "1"),
-        fecha: new Date().toISOString(),
-      },
-    });
-    reset({ descripcion: "", monto: "", msi: "1" });
-    await fetchTarjetas();
+    console.log("Data recibida:", JSON.stringify(data));
+    console.log("selectedTarjetaId:", selectedTarjetaId);
+    console.log("descripcion:", data.descripcion);
+    console.log("monto:", data.monto);
+    console.log("msi:", data.msi);
+    if (!data.descripcion || !data.monto) {
+      alert("Completa todos los campos");
+      return;
+    }
+    try {
+      await apiClient("/cargos", {
+        method: "POST",
+        body: {
+          descripcion: data.descripcion,
+          monto: parseFloat(data.monto),
+          tarjetaId: selectedTarjetaId,
+          msi: parseInt(data.msi || "1"),
+          fecha: new Date().toISOString(),
+        },
+      });
+      reset({ descripcion: "", monto: "", msi: "1" });
+      await fetchTarjetas();
+    } catch (e: any) {
+      console.error("Error al agregar cargo:", e);
+      alert("Error: " + (e.message || "No se pudo agregar el cargo"));
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -98,7 +113,7 @@ export default function TarjetasPage() {
           {tarjetas.map((t) => (
             <SwipeableRow
               key={t.id}
-              onEdit={() => { setSelectedTarjetaId(t.id); setDetailSheetOpen(true); }}
+              onEdit={() => { console.log("Tocando tarjeta:", t.id); if (t.id) { setSelectedTarjetaId(t.id); setDetailSheetOpen(true); } }}
               onDelete={() => handleDelete(t.id!)}
             >
               <div className="bg-ios-bg-primary rounded-xl p-4 shadow-card">
@@ -237,7 +252,7 @@ export default function TarjetasPage() {
                     <div>
                       <p className="text-sm text-ios-text-primary">{cargo.descripcion}</p>
                       <p className="text-xs text-ios-text-tertiary">
-                        {cargo.msi && cargo.msi > 1 ? `${cargo.msi} MSI` : "Sin MSI"} · {new Date(cargo.fecha).toLocaleDateString()}
+                        {cargo.msi && cargo.msi > 1 ? `${cargo.msi} MSI` : "Sin MSI"} · {(cargo as any).createdAt ? new Date((cargo as any).createdAt).toLocaleDateString() : "N/A"}
                       </p>
                     </div>
                     <p className="text-sm font-semibold text-ios-text-primary">{formatCurrency(cargo.monto)}</p>
@@ -277,7 +292,18 @@ export default function TarjetasPage() {
               </div>
               <button
                 type="button"
-                onClick={handleSubmit(handleAddCargo)}
+                onClick={() => {
+                  const descripcion = (document.querySelector('input[placeholder="Descripción del cargo"]') as HTMLInputElement)?.value;
+                  const monto = (document.querySelector('input[placeholder="Monto"]') as HTMLInputElement)?.value;
+                  const msiSelect = document.querySelector('select') as HTMLSelectElement;
+                  console.log("Valores directos:", { descripcion, monto, msi: msiSelect?.value });
+                  if (selectedTarjetaId && descripcion && monto) {
+                    apiClient("/cargos", {
+                      method: "POST",
+                      body: { descripcion, monto: parseFloat(monto), tarjetaId: selectedTarjetaId, msi: parseInt(msiSelect?.value || "1"), fecha: new Date().toISOString() }
+                    }).then(() => { console.log("Cargo agregado"); fetchTarjetas(); }).catch((e) => { console.error("Error:", e); });
+                  } else { console.log("Faltan campos"); }
+                }}
                 className="w-full h-11 bg-ios-accent text-white font-semibold rounded-xl"
               >
                 Agregar Cargo

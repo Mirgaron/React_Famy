@@ -120,8 +120,9 @@ export function SwipeableRow({
         dragConstraints={{ left: -120, right: 120 }}
         dragElastic={0.1}
         onDragEnd={handleDragEnd}
+        onClick={() => onEdit?.()}
         style={{ x }}
-        className="bg-ios-bg-primary relative"
+        className="bg-ios-bg-primary relative cursor-pointer"
       >
         {children}
       </motion.div>

@@ -20,15 +20,30 @@ export async function POST(req: NextRequest) {
     const cargoPadreId = crypto.randomUUID();
 
     if (msi > 1) {
-      // Crear cargo padre + n exhibiciones
+      // Crear cargo padre primero
+      const cargoPadreId = crypto.randomUUID();
+      const cargoPadre = await prisma.cargo.create({
+        data: {
+          id: cargoPadreId,
+          descripcion: `${descripcion} (padre MSI)`,
+          monto,
+          msi,
+          mesCorte: `${fechaDate.getFullYear()}-${String(fechaDate.getMonth() + 1).padStart(2, "0")}`,
+          tarjetaId,
+          pagado: false,
+          cargoPadreId: null,
+          exhibicion: 0,
+        },
+      });
+
+      // Crear n exhibiciones
       const exhibicionMonto = monto / msi;
-      const cargos = [];
+      const exhibiciones = [];
       for (let i = 1; i <= msi; i++) {
         const exhibitDate = new Date(fechaDate);
         exhibitDate.setMonth(exhibitDate.getMonth() + i);
-        // Primer exhibición en el siguiente corte después de la compra
         const mesCorte = `${exhibitDate.getFullYear()}-${String(exhibitDate.getMonth() + 1).padStart(2, "0")}`;
-        cargos.push({
+        exhibiciones.push({
           id: crypto.randomUUID(),
           descripcion: `${descripcion} (${i}/${msi})`,
           monto: exhibicionMonto,
@@ -36,12 +51,12 @@ export async function POST(req: NextRequest) {
           mesCorte,
           tarjetaId,
           pagado: false,
-          cargoPadreId: i === 1 ? cargoPadreId : null,
+          cargoPadreId: cargoPadreId,
           exhibicion: i,
         });
       }
-      await prisma.cargo.createMany({ data: cargos });
-      return NextResponse.json({ data: { id: cargoPadreId, cargos }, error: null });
+      await prisma.cargo.createMany({ data: exhibiciones });
+      return NextResponse.json({ data: { id: cargoPadreId, cargoPadre, exhibiciones }, error: null });
     } else {
       // Cargo normal sin MSI
       const mesCorte = `${fechaDate.getFullYear()}-${String(fechaDate.getMonth() + 1).padStart(2, "0")}`;
