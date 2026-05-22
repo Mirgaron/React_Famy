@@ -8,15 +8,21 @@ import { BottomSheet } from "@/components/mobile/bottom-sheet";
 import { FAB } from "@/components/mobile/fab";
 import { formatCurrency } from "@/lib/utils/cn";
 import { useForm } from "react-hook-form";
+import { apiClient } from "@/lib/api/client";
 
 export default function TarjetasPage() {
   const tarjetas = useTarjetasStore((s) => s.tarjetas);
   const addTarjeta = useTarjetasStore((s) => s.addTarjeta);
   const updateTarjeta = useTarjetasStore((s) => s.updateTarjeta);
   const deleteTarjeta = useTarjetasStore((s) => s.deleteTarjeta);
+  const addCargo = useTarjetasStore((s) => s.addCargo);
+  const fetchTarjetas = useTarjetasStore((s) => s.fetchTarjetas);
+  const cargos = useTarjetasStore((s) => s.cargos);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingTarjeta, setEditingTarjeta] = useState<string | null>(null);
+  const [detailSheetOpen, setDetailSheetOpen] = useState(false);
+  const [selectedTarjetaId, setSelectedTarjetaId] = useState<string | null>(null);
   const { register, handleSubmit, reset } = useForm();
 
   const handleOpenCreate = () => {
@@ -58,6 +64,22 @@ export default function TarjetasPage() {
     reset();
   };
 
+  const handleAddCargo = async (data: any) => {
+    if (!selectedTarjetaId) return;
+    await apiClient("/cargos", {
+      method: "POST",
+      body: {
+        descripcion: data.descripcion,
+        monto: parseFloat(data.monto),
+        tarjetaId: selectedTarjetaId,
+        msi: parseInt(data.msi || "1"),
+        fecha: new Date().toISOString(),
+      },
+    });
+    reset({ descripcion: "", monto: "", msi: "1" });
+    await fetchTarjetas();
+  };
+
   const handleDelete = (id: string) => {
     deleteTarjeta(id);
   };
@@ -76,7 +98,7 @@ export default function TarjetasPage() {
           {tarjetas.map((t) => (
             <SwipeableRow
               key={t.id}
-              onEdit={() => handleOpenEdit(t)}
+              onEdit={() => { setSelectedTarjetaId(t.id); setDetailSheetOpen(true); }}
               onDelete={() => handleDelete(t.id!)}
             >
               <div className="bg-ios-bg-primary rounded-xl p-4 shadow-card">
@@ -194,6 +216,75 @@ export default function TarjetasPage() {
             {editingTarjeta ? "Actualizar" : "Guardar"}
           </button>
         </form>
+      </BottomSheet>
+
+      <BottomSheet
+        isOpen={detailSheetOpen}
+        onClose={() => { setDetailSheetOpen(false); setSelectedTarjetaId(null); }}
+        title={tarjetas.find(t => t.id === selectedTarjetaId)?.nombre || "Detalle de Tarjeta"}
+        height="85%"
+      >
+        <div className="space-y-4">
+          {/* Lista de cargos */}
+          <div>
+            <h3 className="text-sm font-semibold mb-3">Cargos Recientes</h3>
+            {cargos.filter(c => c.tarjetaId === selectedTarjetaId).length === 0 ? (
+              <p className="text-ios-text-secondary text-sm text-center py-4">Sin cargos registrados</p>
+            ) : (
+              <div className="space-y-2">
+                {cargos.filter(c => c.tarjetaId === selectedTarjetaId).map((cargo) => (
+                  <div key={cargo.id} className="bg-ios-bg-secondary rounded-lg p-3 flex justify-between items-center">
+                    <div>
+                      <p className="text-sm text-ios-text-primary">{cargo.descripcion}</p>
+                      <p className="text-xs text-ios-text-tertiary">
+                        {cargo.msi && cargo.msi > 1 ? `${cargo.msi} MSI` : "Sin MSI"} · {new Date(cargo.fecha).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold text-ios-text-primary">{formatCurrency(cargo.monto)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Formulario para agregar cargo */}
+          <div className="border-t border-ios-bg-tertiary pt-4 mt-4">
+            <h3 className="text-sm font-semibold mb-3">Agregar Cargo</h3>
+            <div className="space-y-3">
+              <input
+                {...register("descripcion")}
+                placeholder="Descripción del cargo"
+                className="w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm"
+              />
+              <input
+                {...register("monto")}
+                type="number"
+                step="0.01"
+                placeholder="Monto"
+                className="w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm"
+              />
+              <div>
+                <label className="text-xs font-medium text-ios-text-secondary uppercase">Meses sin intereses</label>
+                <select
+                  {...register("msi")}
+                  className="mt-1 w-full h-11 px-4 rounded-lg bg-ios-bg-secondary text-ios-text-primary text-sm"
+                >
+                  <option value="1">Sin MSI</option>
+                  <option value="3">3 meses</option>
+                  <option value="6">6 meses</option>
+                  <option value="12">12 meses</option>
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={handleSubmit(handleAddCargo)}
+                className="w-full h-11 bg-ios-accent text-white font-semibold rounded-xl"
+              >
+                Agregar Cargo
+              </button>
+            </div>
+          </div>
+        </div>
       </BottomSheet>
     </div>
   );
