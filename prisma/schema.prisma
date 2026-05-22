@@ -19,6 +19,7 @@ model User {
   tarjetas      Tarjeta[]
   colegiaturas  Colegiatura[]
   mantenimiento Mantenimiento[]
+  payments      Payment[]
 }
 
 model Ingreso {
@@ -63,18 +64,25 @@ model Tarjeta {
   updatedAt      DateTime    @updatedAt
   cargos         Cargo[]
   gastosFijos    GastoFijo[]
+  pagosCredito   Payment[]   @relation("PagosCredito")
+  pagosOrigen    Payment[]   @relation("PagosOrigen")
 }
 
 model Cargo {
-  id          String   @id @default(uuid())
-  descripcion String
-  monto       Float
-  msi         Int      @default(1) // 1, 3, 6, 12 cuotas
-  mesCorte    String // YYYY-MM
-  tarjetaId   String
-  tarjeta     Tarjeta  @relation(fields: [tarjetaId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  descripcion  String
+  monto        Float
+  msi          Int      @default(1) // 1, 3, 6, 12 cuotas
+  mesCorte     String // YYYY-MM
+  pagado       Boolean  @default(false)
+  exhibicion   Int      @default(1) // número de exhibición (1 de 6 por ejemplo)
+  cargoPadreId String? // para MSI - referencia al cargo original
+  tarjetaId    String
+  tarjeta      Tarjeta  @relation(fields: [tarjetaId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  cargoPadre   Cargo?   @relation("CargosMSI", fields: [cargoPadreId], references: [id])
+  cargosMSI    Cargo[]  @relation("CargosMSI")
 }
 
 model Colegiatura {
@@ -101,4 +109,17 @@ model Mantenimiento {
   user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Payment {
+  id               String   @id @default(uuid())
+  monto            Float
+  tipo             String // "PAGO" | "CARGO"
+  tarjetaCreditoId String?
+  tarjetaOrigenId  String?
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  createdAt        DateTime @default(now())
+  tarjetaCredito   Tarjeta? @relation("PagosCredito", fields: [tarjetaCreditoId], references: [id])
+  tarjetaOrigen    Tarjeta? @relation("PagosOrigen", fields: [tarjetaOrigenId], references: [id])
 }
